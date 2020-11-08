@@ -9,7 +9,7 @@ Gra jest swego rodzaju zagadką logiczną
 
 Informacje typu "Error [liczba]." są elementem rozgrywki sugerującym, iż użytkownik rozgniewał interfejs.
 
-===========================================================================SPOILER============================================================================
+================================================SPOILER============================================================================
 /m lista komend
 /p lista modlitw
 
