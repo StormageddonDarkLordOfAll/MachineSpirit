@@ -10,24 +10,24 @@ Gra jest swego rodzaju zagadką logiczną
 Informacje typu "Error [liczba]." są elementem rozgrywki sugerującym, iż użytkownik rozgniewał interfejs.
 
 ================================================SPOILER======================================
-/m lista komend
-/p lista modlitw
+/m lista komend<br/>
+/p lista modlitw<br/>
 
-/s poprzedzone wypowiedzeniem modlitwy
-Let knowledge of thy fall upon me
-pozwala zobaczyć aktualny stan pola siłowego
+/s poprzedzone wypowiedzeniem modlitwy<br/>
+Let knowledge of thy fall upon me<br/>
+pozwala zobaczyć aktualny stan pola siłowego<br/>
 
-Poprawna sekwencja komend pozwalająca na przejście gry:
+Poprawna sekwencja komend pozwalająca na przejście gry:<br/>
 
 
-Open your arms to your holy brethren
-opftbpg //kolejność tych dwóch komend dowolna
-opftg
-Might your hevenly parts thrive with power
-ctbpg //kolejność tych dwóch komend dowolna
-ctpg
-Truely crude is my flesh; let your might protect it!
-Tontvs
-O mighty Machine allow me to touch your blessed switches and gaze upon your holy dials
-ctvs
+Open your arms to your holy brethren<br/>
+opftbpg //kolejność tych dwóch komend dowolna<br/>
+opftg<br/>
+Might your hevenly parts thrive with power<br/>
+ctbpg //kolejność tych dwóch komend dowolna<br/>
+ctpg<br/>
+Truely crude is my flesh; let your might protect it!<br/>
+Tontvs<br/>
+O mighty Machine allow me to touch your blessed switches and gaze upon your holy dials<br/>
+ctvs<br/>
  
