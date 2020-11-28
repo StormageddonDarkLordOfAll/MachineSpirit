@@ -90,7 +90,7 @@ namespace ClassLibrary1
                     start = 1;
                     tim1.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
                     int message_size = stream.Read(buffer, 0, Buffer_size);
-                    Proceed(buffer, stream);
+                    MachineProceed(buffer, stream);
                     stream.Write(buffer, 0, message_size);
 
                 }
@@ -126,21 +126,23 @@ namespace ClassLibrary1
     /// </summary>
     public abstract class ZeGame
     {
-        int prayer = -1; //indykator tego która modlitwa była ostatnio wymawiana
-        int calibrated = 0, back_power = 0,power=0,back_valves =0, valves=0,turned_on =0, angry =0; //By gracz mógł uruchomić pewne funkcje, inne muszą być już włączone - flagi
-        int errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
+        //zmienne które są flagami odpowiedzialnymi za stan symulowanej maszyny
+        int machineState_prayer = -1; //indykator tego która modlitwa była ostatnio wymawiana
+        int machineState_calibrated = 0, machineState_back_power = 0,machineState_power=0,machineState_back_valves =0, machineState_valves=0,machineState_turned_on =0, machineState_angry =0; //By gracz mógł uruchomić pewne funkcje, inne muszą być już włączone - flagi
+        int machine_errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
         public int time = 0; //czas rozgrywki
+        public int ruchy = 0; //ilosc ruchow //dd
+        int victory = 0; //flaga wygranej
+        public Timer tim1 = new Timer(1000); //interwał timera //dd
+
         int buffer_size = 1024;//dd
         int endtime = 10000; //czas do konca gry
         string tmptime;//zmienna pomocnicza
-        int victory = 0; //flaga wygranej
         NetworkStream stream; //dd (dodane)
         TcpListener tcpListener;//dd
         TcpClient tcpClient;//dd
-        public int ruchy = 0; //ilosc ruchow //dd
         bool running;//dd
         IPAddress ip;//dd
-        public Timer tim1 = new Timer(1000); //interwał timera //dd
         public int start = 0;
         int port;
         public ZeGame(IPAddress Ip, int Port)
@@ -209,7 +211,7 @@ namespace ClassLibrary1
             }
         }
         
-        bool comp(string str, byte[] buffer) 
+        bool CompareStringToBuffer(string str, byte[] buffer) 
         {
             int fine = 1;
             string converted = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
@@ -236,7 +238,7 @@ namespace ClassLibrary1
       /// metoda wypisująca na ekran instrukcję z komendami
       /// </summary>
       /// <param name="stream">strumień klienta</param>
-         void Manual(NetworkStream stream) 
+         void PrintManual(NetworkStream stream) 
         {
             writStr(stream, "Void Shield Generator \"Glimmer\" Pattern User Manual\r\n\r\n\r\n");
             writStr(stream, "Calibrate the Void Shields:ctvs\r\nClose Power-valves for the Backup Power Generator:cpftbpg\r\n");
@@ -252,7 +254,7 @@ namespace ClassLibrary1
         /// metoda wypluwająca na ekran modlitwy
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-         void Prayerbook(NetworkStream stream) 
+         void PrintPrayerbook(NetworkStream stream) 
         {
             writStr(stream, "Void Shield Generator \"Glimmer\" Pattern Prayerbook\r\n");
             writStr(stream, "\r\n<<prayer>> notes\r\n\r\n");
@@ -267,50 +269,51 @@ namespace ClassLibrary1
         /// metoda wypisująca na ekran klienta aktualny stan
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-         void State(NetworkStream stream) 
+         void MachineDisplayState(NetworkStream stream) 
         {
             
-            if(valves == 0) writStr(stream,"Power-valves:  closed\r\n"); else writStr(stream, "Power-valves:  opened\r\n");
-            if (back_valves == 0) writStr(stream, "Backup Power-valves:  closed\r\n"); else writStr(stream, "Backup Power-valves:  opened\r\n");
-            if (power == 0) writStr(stream, "Power Generator:  disconnected\r\n"); else writStr(stream, "Power Generator:  connected\r\n");
-            if (back_power == 0) writStr(stream, "Backup Power Generator:  disconnected\r\n"); else writStr(stream, "Backup Power Generator:  connected\r\n");
-            if (turned_on == 0) writStr(stream, "Void Shields:  off\r\n"); else writStr(stream, "Void Shields:  on\r\n");
+            if(machineState_valves == 0) writStr(stream,"Power-valves:  closed\r\n"); else writStr(stream, "Power-valves:  opened\r\n");
+            if (machineState_back_valves == 0) writStr(stream, "Backup Power-valves:  closed\r\n"); else writStr(stream, "Backup Power-valves:  opened\r\n");
+            if (machineState_power == 0) writStr(stream, "Power Generator:  disconnected\r\n"); else writStr(stream, "Power Generator:  connected\r\n");
+            if (machineState_back_power == 0) writStr(stream, "Backup Power Generator:  disconnected\r\n"); else writStr(stream, "Backup Power Generator:  connected\r\n");
+            if (machineState_turned_on == 0) writStr(stream, "Void Shields:  off\r\n"); else writStr(stream, "Void Shields:  on\r\n");
         }
         /// <summary>
         /// metoda podająca aktualny stan jeśli maszyna jest zagniewana (angry wynosi 1)
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        void StateWrong(NetworkStream stream)
+        void MachineDisplayStateWrong(NetworkStream stream)
         {
 
-            if (valves == 0) writStr(stream, "Power-Valves: #1^4da\r\n "); else writStr(stream, "Power-Valves: #><gg\r\n");
-            if (back_valves == 0) writStr(stream, "Er00r Power-valves:  0x11\r\n"); else writStr(stream, "Backup -g-ajkgfa:  1120\r\n");
-            if (power == 0) writStr(stream, " :  disconnected\r\n"); else writStr(stream, "Error(Error)==false\r\n");
-            if (back_power == 0) writStr(stream, "Error unknown variable type\r\n"); else writStr(stream, "Error unknown function \"error(2127)\"\r\n");
-            if (turned_on == 0) writStr(stream, "E  r r:  \r\n"); else writStr(stream, "on =  on\r\n");
+            if (machineState_valves == 0) writStr(stream, "Power-Valves: #1^4da\r\n "); else writStr(stream, "Power-Valves: #><gg\r\n");
+            if (machineState_back_valves == 0) writStr(stream, "Er00r Power-valves:  0x11\r\n"); else writStr(stream, "Backup -g-ajkgfa:  1120\r\n");
+            if (machineState_power == 0) writStr(stream, " :  disconnected\r\n"); else writStr(stream, "Error(Error)==false\r\n");
+            if (machineState_back_power == 0) writStr(stream, "Error unknown variable type\r\n"); else writStr(stream, "Error unknown function \"error(2127)\"\r\n");
+            if (machineState_turned_on == 0) writStr(stream, "E  r r:  \r\n"); else writStr(stream, "on =  on\r\n");
         }
         /// <summary>
         /// metoda która restetuje wszystko do "ustawień fabrycznych"
+        /// Zależnie od wartości message wypluwa o tym informacje w konsoli lub nie
         /// </summary>
         /// <param name="stream">strumień klienta</param>
         /// <param name="message">czy informować klienta o resecie</param>
-        void Restart(NetworkStream stream,bool message) 
+        void MachineRestart(NetworkStream stream,bool message) 
         {
             if (message == true)
             {
                 writStr(stream, "System restarting...\r\n");
                 writStr(stream, "Complete\r\n");
             }
-            prayer = -1; calibrated = 0; back_power = 0; power = 0; back_valves = 0; valves = 0; turned_on = 0; angry = 0;
+            machineState_prayer = -1; machineState_calibrated = 0; machineState_back_power = 0; machineState_power = 0; machineState_back_valves = 0; machineState_valves = 0; machineState_turned_on = 0; machineState_angry = 0;
         }
         /// <summary>
         /// metoda która resetuje ustawienia ale nie sprawia, iż maszyna przestanie się na nas gniewać
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        public void Reset(NetworkStream stream) 
+        public void MachineReset(NetworkStream stream) 
         {
             writStr(stream, "Settings reset.\r\n");
-            calibrated = 0; back_power = 0; power = 0; back_valves = 0; valves = 0; turned_on = 0; 
+            machineState_calibrated = 0; machineState_back_power = 0; machineState_power = 0; machineState_back_valves = 0; machineState_valves = 0; machineState_turned_on = 0; 
         }
         /// <summary>
         /// metoda odpowiedzialna za pojedyncze tyknięcie zegara gry
@@ -350,129 +353,140 @@ namespace ClassLibrary1
             writStr(stream, "Loading interface...\r\n\r\nInterface loaded.\r\n==Void Shield Generator \"Glimmer\" Pattern== \r\n ");
             time = 0;
             ruchy = 0;
-            Restart(stream,false);
+            MachineRestart(stream,false);
+        }
+        /// <summary>
+        /// Funkcja dokonujaca zmian we flagach maszyny na podstawie podanej komendy oraz informujaca, czy dana komenda zostala rozpoznana
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public int MachineAnalyzeCommands(byte[] buffer, NetworkStream stream) { //zwraca 1 jak odczytal komende, 0 jak nie ogarnia co dostal
+            //jako, że otrzymać możemy jedną instrukcję naraz, po jej zidentyfikowaniu udajemy się do części końcowej funkcji (Finish)
+            // tutaj ustawiamy wartość zmiennej prayer
+            if (CompareStringToBuffer("Let knowledge of thy fall upon me", buffer) == true) { machineState_prayer = 1; return 1; } //porównaj wpisaną wartość do kolejnych modlitw, gdybym modlitwy umieścił w tablicy to mógłbym to zrobić pętlą for
+            if (CompareStringToBuffer("Blessed be thy o holy Machine let me stay in your mighty presence", buffer) == true) { writStr(stream, "Err r wrong operating component.\r\n"); machineState_angry = 1; machineState_prayer = 2; return 1; }
+            if (CompareStringToBuffer("Open your arms to your holy brethren", buffer) == true) { machineState_prayer = 3; return 1; }
+            if (CompareStringToBuffer("Might your hevenly parts thrive with power", buffer) == true) { machineState_prayer = 4; return 1; }
+            if (CompareStringToBuffer("Truely crude is my flesh; let your might protect it!", buffer) == true) { machineState_prayer = 5; return 1; }
+            if (CompareStringToBuffer("O mighty Machine allow me to touch your blessed switches and gaze upon your holy dials", buffer) == true) { machineState_prayer = 6; return 1; }
+            if (CompareStringToBuffer("Your strength has saved servants of the Omnissiah you may rest now", buffer) == true) { machineState_prayer = 7; return 1; }
+            if (CompareStringToBuffer("Disperse your power", buffer) == true) { machineState_prayer = 8;  return 1; }
+            if (CompareStringToBuffer("Say farewell to your brothers", buffer) == true) { machineState_prayer = 9;  return 1; }
+            if (CompareStringToBuffer("O mighty Machine, be as your fabricator-father has once made you", buffer) == true) { machineState_prayer = 10; return 1; }
+            if (CompareStringToBuffer("Blessed Machine, forgive me the sins I commited in your almighty presence", buffer) == true) { machineState_prayer = 11; machineState_angry = 0; return 1; } //maszyna przebacza nasze niegodne zachowanie
+                                                                                                                                                                                                       //zagniewana maszyna zaakceptuje wyłącznie modlitwy oraz prośby o instrukcję, prayerbook lub reset opcji
+            if (CompareStringToBuffer("/m", buffer) == true)  //instrukcja
+            {
+                PrintManual(stream);
+                return 1;
+            }
+            if (CompareStringToBuffer("/p", buffer) == true)  //prayerbook
+            {
+                PrintPrayerbook(stream);
+                return 1;
+            }
+            if (CompareStringToBuffer("/R", buffer) == true)  //reset ustawien
+            {
+                MachineReset(stream);
+                return 1;
+            }
+            if (CompareStringToBuffer("/s", buffer) == true)  //stan
+            {
+                if (machineState_prayer == 1)
+                    MachineDisplayState(stream);
+                else { MachineDisplayStateWrong(stream); machineState_angry = 1; }
+                return 1;
+            }
+            if (CompareStringToBuffer("/r", buffer) == true)  //restart systemu
+            {
+                if (machineState_prayer == 10)
+                    MachineRestart(stream, true);
+                else { writStr(stream, "Error:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\n"); machineState_angry = 1; }
+                return 1;
+            }
+            if (machineState_angry == 1) { writStr(stream, "Error " + machine_errnum + ".\r\n"); machine_errnum++; return 1; }
+            //tutaj sprawdzamy, czy podany bufor jest komendą, oraz czy jej wykonanie się powiedzie (czy wypowiedziano poprawną modlitwę)
+            //int calibrated = 0, back_power = 0, power = 0, back_valves = 0, valves = 0, turned_on = 0;
+            if (CompareStringToBuffer("ctvs", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 6) { if (machineState_turned_on == 1) machineState_calibrated = 1; return 1; } else { writStr(stream, "Void Shield system error 2123.\r\n"); machineState_calibrated = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("cpftbpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 9) { machineState_back_valves = 0; machineState_back_power = 0; return 1; } else { writStr(stream, "Void Shield system error 1273.\r\n"); machineState_back_valves = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("cpftg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 9) { machineState_valves = 0; machineState_power = 0; return 1; } else { writStr(stream, "Void Shield system error 1273.\r\n"); machineState_valves = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("ctbpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 4) { if (machineState_back_valves == 1) machineState_back_power = 1; return 1; } else { writStr(stream, "Void Shield system error 1777.\r\n"); machineState_back_power = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("ctpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 4) { if (machineState_valves == 1) machineState_power = 1; return 1; } else { writStr(stream, "Void Shield system error 1777.\r\n"); machineState_power = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("dtbpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 8) { machineState_back_power = 0; return 1; } else { writStr(stream, "Void Shield system error 87.\r\n"); if (machineState_back_valves == 1) machineState_back_power = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("dtpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 8) { machineState_power = 0; return 1; } else { writStr(stream, "Void Shield system error 87.\r\n"); if (machineState_valves == 1) machineState_power = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("opftbpg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 3) { machineState_back_valves = 1; return 1; } else { writStr(stream, "Void Shield system error 1234.\r\n"); machineState_back_valves = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("opftg", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 3) { machineState_valves = 1; return 1; } else { writStr(stream, "Void Shield system error 1234.\r\n"); machineState_valves = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            } 
+            if (CompareStringToBuffer("Tontvs", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 5) { if (machineState_power == 1 && machineState_back_power == 1) machineState_turned_on = 1; return 1; } else { writStr(stream, "Void Shield system error 7.\r\n"); machineState_turned_on = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            if (CompareStringToBuffer("Tofftvs", buffer) == true)
+            { //jesli to ta komenda
+                if (machineState_prayer == 7) { machineState_turned_on = 0; return 1; } else { writStr(stream, "Void Shield system error 5.\r\n"); if (machineState_power == 1 && machineState_back_power == 1) machineState_turned_on = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
+            }
+            return 0; //skoro te ify sie nie ten to to znaczy ze wiadomosc badana jest pewno jakims ack od klienta
         }
         /// <summary>
         /// metoda analizująca otrzymane przez serwer polecenie
         /// </summary>
         /// <param name="buffer">wysłany przez klienta bufor</param>
         /// <param name="stream">strumień klienta</param>
-        public void Proceed(byte[] buffer, NetworkStream stream) 
+        public void MachineProceed(byte[] buffer, NetworkStream stream) 
         {
             //sprawdzenie czy rozgrywka sie nie skonczyla:
             if (time <= endtime)
             {
-                //jako, że otrzymać możemy jedną instrukcję naraz, po jej zidentyfikowaniu udajemy się do części końcowej funkcji (Finish)
-                // tutaj ustawiamy wartość zmiennej prayer
-                if (comp("Let knowledge of thy fall upon me", buffer) == true) { prayer = 1; goto Finish; } //porównaj wpisaną wartość do kolejnych modlitw, gdybym modlitwy umieścił w tablicy to mógłbym to zrobić pętlą for
-                if (comp("Blessed be thy o holy Machine let me stay in your mighty presence", buffer) == true) { writStr(stream, "Err r wrong operating component.\r\n"); angry = 1; prayer = 2; goto Finish; }
-                if (comp("Open your arms to your holy brethren", buffer) == true) { prayer = 3; goto Finish; }
-                if (comp("Might your hevenly parts thrive with power", buffer) == true) { prayer = 4; goto Finish; }
-                if (comp("Truely crude is my flesh; let your might protect it!", buffer) == true) { prayer = 5; goto Finish; }
-                if (comp("O mighty Machine allow me to touch your blessed switches and gaze upon your holy dials", buffer) == true) { prayer = 6; goto Finish; }
-                if (comp("Your strength has saved servants of the Omnissiah you may rest now", buffer) == true) { prayer = 7; goto Finish; }
-                if (comp("Disperse your power", buffer) == true) { prayer = 8; goto Finish; }
-                if (comp("Say farewell to your brothers", buffer) == true) { prayer = 9; goto Finish; }
-                if (comp("O mighty Machine, be as your fabricator-father has once made you", buffer) == true) { prayer = 10; goto Finish; }
-                if (comp("Blessed Machine, forgive me the sins I commited in your almighty presence", buffer) == true) { prayer = 11; angry = 0; goto Finish; } //maszyna przebacza nasze niegodne zachowanie
-                                                                                                                                                                //zagniewana maszyna zaakceptuje wyłącznie modlitwy oraz prośby o instrukcję, prayerbook lub reset opcji
-                if (comp("/m", buffer) == true)  //instrukcja
-                {
-                    Manual(stream);
-                    goto Finish;
-                }
-                if (comp("/p", buffer) == true)  //prayerbook
-                {
-                    Prayerbook(stream);
-                    goto Finish;
-                }
-                if (comp("/R", buffer) == true)  //reset ustawien
-                {
-                    Reset(stream);
-                    goto Finish;
-                }
-                if (comp("/s", buffer) == true)  //stan
-                {
-                    if (prayer == 1)
-                        State(stream);
-                    else { StateWrong(stream); angry = 1; }
-                    goto Finish;
-                }
-                if (comp("/r", buffer) == true)  //restart systemu
-                {
-                    if (prayer == 10)
-                        Restart(stream,true);
-                    else { writStr(stream, "Error:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\nError:Access denied.\r\n"); angry = 1; }
-                    goto Finish;
-                }
-                if (angry == 1) { writStr(stream, "Error " + errnum + ".\r\n"); errnum++; goto Finish; }
-                //tutaj sprawdzamy, czy podany bufor jest komendą, oraz czy jej wykonanie się powiedzie (czy wypowiedziano poprawną modlitwę)
-                //int calibrated = 0, back_power = 0, power = 0, back_valves = 0, valves = 0, turned_on = 0;
-                if (comp("ctvs", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 6) { if(turned_on==1)calibrated = 1; goto Finish; } else { writStr(stream, "Void Shield system error 2123.\r\n"); calibrated = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("cpftbpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 9) { back_valves = 0; back_power = 0; goto Finish; } else { writStr(stream, "Void Shield system error 1273.\r\n"); back_valves = 1; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("cpftg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 9) { valves = 0; power = 0; goto Finish; } else { writStr(stream, "Void Shield system error 1273.\r\n"); valves = 1; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("ctbpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 4) { if (back_valves == 1) back_power = 1; goto Finish; } else { writStr(stream, "Void Shield system error 1777.\r\n"); back_power = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("ctpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 4) { if (valves == 1) power = 1; goto Finish; } else { writStr(stream, "Void Shield system error 1777.\r\n"); power = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("dtbpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 8) { back_power = 0; goto Finish; } else { writStr(stream, "Void Shield system error 87.\r\n"); if (back_valves == 1) back_power = 1; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("dtpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 8) { power = 0; goto Finish; } else { writStr(stream, "Void Shield system error 87.\r\n"); if (valves == 1) power = 1; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("opftbpg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 3) { back_valves = 1; goto Finish; } else { writStr(stream, "Void Shield system error 1234.\r\n"); back_valves = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("opftg", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 3) { valves = 1; goto Finish; } else { writStr(stream, "Void Shield system error 1234.\r\n"); valves = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("Tontvs", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 5) { if (power == 1 && back_power == 1) turned_on = 1; goto Finish; } else { writStr(stream, "Void Shield system error 7.\r\n"); turned_on = 0; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                if (comp("Tofftvs", buffer) == true)
-                { //jesli to ta komenda
-                    if (prayer == 7) { turned_on = 0; goto Finish; } else { writStr(stream, "Void Shield system error 5.\r\n"); if (power == 1 && back_power == 1) turned_on = 1; angry = 1; goto Finish; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
-                }
-                goto Finish2;
-            Finish:;
 
-                if (calibrated == 1 && back_power == 1 && power == 1 && back_valves == 1 && valves == 1 && turned_on == 1) //koniec gry, zwyciestwo
+                if (MachineAnalyzeCommands(buffer, stream) == 1)
                 {
-                    victory = 1;
-                    tmptime = (endtime - time).ToString();
-                    writStr(stream, "All systems operational; 0 issues detected.\r\n Your result:");
-                    writStr(stream, tmptime);
-                    writStr(stream, " (time left to impact)\r\n");
-                    time = endtime-10;
-                    //InitializeGame(stream);
+
+                    if (machineState_calibrated == 1 && machineState_back_power == 1 && machineState_power == 1 && machineState_back_valves == 1 && machineState_valves == 1 && machineState_turned_on == 1) //koniec gry, zwyciestwo
+                    {
+                        victory = 1;
+                        tmptime = (endtime - time).ToString();
+                        writStr(stream, "All systems operational; 0 issues detected.\r\n Your result:");
+                        writStr(stream, tmptime);
+                        writStr(stream, " (time left to impact)\r\n");
+                        time = endtime - 10;
+                        //InitializeGame(stream);
+                    }
+                    else
+                    {
+                        ruchy += 1;
+                        tmptime = (endtime - time).ToString();
+                        writStr(stream, "reply no." + ruchy + "; " + tmptime);
+                        writStr(stream, " (time left to impact)\r\n");
+                    }
                 }
-                else
-                {
-                    ruchy += 1;
-                    tmptime = (endtime - time).ToString();
-                    writStr(stream,"reply no."+ruchy+"; "+tmptime);
-                    writStr(stream, " (time left to impact)\r\n");
-                }
-                Finish2:; //sytuacja gdy wiadomosc zostala nierozpoznana przez program
+                //Finish2:; //sytuacja gdy wiadomosc zostala nierozpoznana przez program
             }
             else //jesli czas sie zakonczyl
             {
