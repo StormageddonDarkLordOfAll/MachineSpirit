@@ -38,7 +38,7 @@ namespace ClassLibrary1
 
             {
                 TcpClient tcpClient = TcpListener.AcceptTcpClient();
-               Stream = tcpClient.GetStream();
+                Stream = tcpClient.GetStream();
                 TransmissionDataDelegate transmissionDelegate = new TransmissionDataDelegate(BeginDataTransmission);
                 transmissionDelegate.BeginInvoke(Stream, TransmissionCallback, tcpClient);
 
@@ -219,13 +219,18 @@ namespace ClassLibrary1
         /// <param name="stream">strumień klienta</param>
          void MachineDisplayState(NetworkStream stream) 
         {
-            
-            if(machineState_valves == 0) Printer.writeStringToConsole(stream,"Power-valves:  closed\r\n"); else Printer.writeStringToConsole(stream, "Power-valves:  opened\r\n");
+            CheckMachineStateAndShowProperAnswer(stream);         
+        }
+
+        private void CheckMachineStateAndShowProperAnswer(NetworkStream stream)
+        {
+            if (machineState_valves == 0) Printer.writeStringToConsole(stream, "Power-valves:  closed\r\n"); else Printer.writeStringToConsole(stream, "Power-valves:  opened\r\n");
             if (machineState_back_valves == 0) Printer.writeStringToConsole(stream, "Backup Power-valves:  closed\r\n"); else Printer.writeStringToConsole(stream, "Backup Power-valves:  opened\r\n");
             if (machineState_power == 0) Printer.writeStringToConsole(stream, "Power Generator:  disconnected\r\n"); else Printer.writeStringToConsole(stream, "Power Generator:  connected\r\n");
             if (machineState_back_power == 0) Printer.writeStringToConsole(stream, "Backup Power Generator:  disconnected\r\n"); else Printer.writeStringToConsole(stream, "Backup Power Generator:  connected\r\n");
             if (machineState_turned_on == 0) Printer.writeStringToConsole(stream, "Void Shields:  off\r\n"); else Printer.writeStringToConsole(stream, "Void Shields:  on\r\n");
         }
+
         /// <summary>
         /// metoda podająca aktualny stan jeśli maszyna jest zagniewana (angry wynosi 1)
         /// </summary>
@@ -245,13 +250,21 @@ namespace ClassLibrary1
         /// </summary>
         /// <param name="stream">strumień klienta</param>
         /// <param name="message">czy informować klienta o resecie</param>
-        void MachineRestart(NetworkStream stream,bool message) 
+        void MachineRestart(NetworkStream stream, bool informClientAboutRestart) 
         {
-            if (message == true)
+            InformClientAboutRestart(stream, informClientAboutRestart);
+            ResetFlags();
+        }
+        private void InformClientAboutRestart(NetworkStream stream, bool informClientAboutRestart)
+        {
+            if (informClientAboutRestart == true)
             {
                 Printer.writeStringToConsole(stream, "System restarting...\r\n");
                 Printer.writeStringToConsole(stream, "Complete\r\n");
             }
+        }
+        private void ResetFlags()
+        {
             machineState_prayer = -1; machineState_calibrated = 0; machineState_back_power = 0; machineState_power = 0; machineState_back_valves = 0; machineState_valves = 0; machineState_turned_on = 0; machineState_angry = 0;
         }
         /// <summary>
@@ -275,7 +288,7 @@ namespace ClassLibrary1
                 CheckIfGameIsWon(stream);
             }
         }
-        public  void OnTimedEvent(object source, ElapsedEventArgs e, NetworkStream stream) //dd
+        public void OnTimedEvent(object source, ElapsedEventArgs e, NetworkStream stream)
         {
             TimerTicker(stream);
         }
@@ -288,7 +301,7 @@ namespace ClassLibrary1
             Printer.InitializeMenu(stream);
             gameTimeLasted = 0;
             ruchy = 0;
-            MachineRestart(stream,false);
+            MachineRestart(stream, false);
         }
         /// <summary>
         /// Funkcja dokonujaca zmian we flagach maszyny na podstawie podanej komendy oraz informujaca, czy dana komenda zostala rozpoznana
