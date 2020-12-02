@@ -74,10 +74,10 @@ namespace ClassLibrary1
                     if (start == 0)
                     {
                         InitializeGame(stream);
-                        tim1.Enabled = true;//uruchomienie timera
+                        timerInterval.Enabled = true;//uruchomienie timera
                     }
                     start = 1;
-                    tim1.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
+                    timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
                     int message_size = stream.Read(buffer, 0, Buffer_size);
                     MachineProceed(buffer, stream);
                     stream.Write(buffer, 0, message_size);
@@ -117,13 +117,15 @@ namespace ClassLibrary1
         int machineState_prayer = -1; //indykator tego która modlitwa była ostatnio wymawiana
         int machineState_calibrated = 0, machineState_back_power = 0,machineState_power=0,machineState_back_valves =0, machineState_valves=0,machineState_turned_on =0, machineState_angry =0; //By gracz mógł uruchomić pewne funkcje, inne muszą być już włączone - flagi
         int machine_errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
-        public int time = 0; //czas rozgrywki
+       
         public int ruchy = 0; //ilosc ruchow
         int victory = 0; //flaga wygranej
-        public Timer tim1 = new Timer(1000); //interwał timera
+        public Timer timerInterval; 
 
-        int buffer_size = 1024;
-        int endtime = 10000; //czas do konca gry
+        int bufferSize;
+        public int gameTimeLasted;
+        int MAX_GAME_TIME_LIMIT;
+
         string tmptime;//zmienna pomocnicza
         bool running;
         IPAddress ip;
@@ -133,6 +135,10 @@ namespace ClassLibrary1
         {
             ip = Ip;
             port = Port;
+            bufferSize = 1024;
+            gameTimeLasted = 0;
+            MAX_GAME_TIME_LIMIT = 10000;
+            timerInterval  = new Timer(1000); 
         }
         public ZeGame() { }
         /// <summary>
@@ -143,17 +149,18 @@ namespace ClassLibrary1
         /// <returns></returns>
         public int Buffer_size
         {
-            get => buffer_size; set
+            get => bufferSize; set
 
             {
 
-                if (value < 0 || value > 1024 * 1024 * 64) throw new Exception("błędny rozmiar pakietu");
+                if (value < 0 || value > bufferSize * bufferSize * 64) throw new Exception("Błędny rozmiar pakietu");
 
-                if (!running) buffer_size = value; else throw new Exception("nie można zmienić rozmiaru pakietu kiedy serwer jest uruchomiony");
+                if (!running) bufferSize = value; else throw new Exception("Nie można zmienić rozmiaru pakietu kiedy serwer jest uruchomiony");
 
             }
 
         }
+
         protected NetworkStream Stream { get; set; }
         protected abstract void BeginDataTransmission(NetworkStream stream);
         protected TcpListener TcpListener { get; set; }
@@ -180,17 +187,17 @@ namespace ClassLibrary1
             if (port < 1024 || port > 49151) return false;
             return true;
         }
-        public int Port //dd
+        public int Port 
         {
             get => port; set
 
             {
                 int tmp = port;
-                if (!running) port = value; else throw new Exception("nie można zmienić portu kiedy serwer jest uruchomiony");
+                if (!running) port = value; else throw new Exception("Nie można zmienić portu kiedy serwer jest uruchomiony");
                 if (!checkPort())
                 {
                     port = tmp;
-                    throw new Exception("błędna wartość portu");
+                    throw new Exception("Błędna wartość portu");
                 }
             }
         }
@@ -265,8 +272,8 @@ namespace ClassLibrary1
         /// <param name="stream">strumień klienta</param>
         public void Tim(NetworkStream stream)
         {
-            time++;
-            if (time >= endtime) //koniec gry
+            gameTimeLasted++;
+            if (gameTimeLasted >= MAX_GAME_TIME_LIMIT) //koniec gry
             {
                 if (victory==0)
                 {
@@ -285,7 +292,7 @@ namespace ClassLibrary1
         public void InitializeGame(NetworkStream stream) //
         {
             Printer.InitializeMenu(stream);
-            time = 0;
+            gameTimeLasted = 0;
             ruchy = 0;
             MachineRestart(stream,false);
         }
@@ -396,36 +403,54 @@ namespace ClassLibrary1
         public void MachineProceed(byte[] buffer, NetworkStream stream) 
         {
             //sprawdzenie czy rozgrywka sie nie skonczyla:
-            if (time <= endtime)
+            if (IsGameEnded())
             {
-
+                // todo correct that function because nobody knows what the hell is inside
                 if (MachineAnalyzeCommands(buffer, stream) == 1)
                 {
 
-                    if (machineState_calibrated == 1 && machineState_back_power == 1 && machineState_power == 1 && machineState_back_valves == 1 && machineState_valves == 1 && machineState_turned_on == 1) //koniec gry, zwyciestwo
+                    if (IsGameWon())
                     {
-                        victory = 1;
-                        tmptime = (endtime - time).ToString();
-                        Printer.writeStringToConsole(stream, "All systems operational; 0 issues detected.\r\n Your result:");
-                        Printer.writeStringToConsole(stream, tmptime);
-                        Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
-                        time = endtime - 10;
-                        //InitializeGame(stream);
+                        GameSummary(stream);
+                       
                     }
                     else
                     {
-                        ruchy += 1;
-                        tmptime = (endtime - time).ToString();
-                        Printer.writeStringToConsole(stream, "reply no." + ruchy + "; " + tmptime);
-                        Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
+                        ContinueGame(stream);
                     }
                 }
-                //Finish2:; //sytuacja gdy wiadomosc zostala nierozpoznana przez program
+               
             }
             else //jesli czas sie zakonczyl
             {
                 InitializeGame(stream);
             }
+        }
+
+        private bool IsGameEnded()
+        {
+            return gameTimeLasted <= MAX_GAME_TIME_LIMIT;  
+        }
+        private bool IsGameWon()
+        {
+            return (machineState_calibrated == 1 && machineState_back_power == 1 && machineState_power == 1 && machineState_back_valves == 1 && machineState_valves == 1 && machineState_turned_on == 1);
+        }
+
+        private void ContinueGame(NetworkStream stream)
+        {
+            ruchy += 1;
+            tmptime = (MAX_GAME_TIME_LIMIT - gameTimeLasted).ToString();
+            Printer.writeStringToConsole(stream, "reply no." + ruchy + "; " + tmptime);
+            Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
+        }
+        private void GameSummary(NetworkStream stream)
+        {
+            victory = 1;
+            tmptime = (MAX_GAME_TIME_LIMIT - gameTimeLasted).ToString();
+            Printer.writeStringToConsole(stream, "All systems operational; 0 issues detected.\r\n Your result:");
+            Printer.writeStringToConsole(stream, tmptime);
+            Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
+            gameTimeLasted = MAX_GAME_TIME_LIMIT - 10;
         }
     }
 }
