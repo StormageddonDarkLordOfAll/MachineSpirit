@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
@@ -119,7 +116,7 @@ namespace ClassLibrary1
         int machine_errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
        
         public int ruchy = 0; //ilosc ruchow
-        int victory = 0; //flaga wygranej
+        bool victoryFlag = false;
         public Timer timerInterval; 
 
         int bufferSize;
@@ -270,20 +267,17 @@ namespace ClassLibrary1
         /// metoda odpowiedzialna za pojedyncze tyknięcie zegara gry
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        public void Tim(NetworkStream stream)
+        public void TimerTicker(NetworkStream stream)
         {
             gameTimeLasted++;
-            if (gameTimeLasted >= MAX_GAME_TIME_LIMIT) //koniec gry
+            if (IsMaxTimePassed())
             {
-                if (victory==0)
-                {
-                    Printer.writeStringToConsole(stream, "Report: multiple damage indicators on\r\nSystem failure\r\n");
-                }
+                CheckIfGameIsWon(stream);
             }
         }
         public  void OnTimedEvent(object source, ElapsedEventArgs e, NetworkStream stream) //dd
         {
-            Tim(stream);
+            TimerTicker(stream);
         }
         /// <summary>
         /// metoda odpowiedzialna za wypisanie na ekran gracza wiadomosci startowej, restart gry
@@ -402,8 +396,8 @@ namespace ClassLibrary1
         /// <param name="stream">strumień klienta</param>
         public void MachineProceed(byte[] buffer, NetworkStream stream) 
         {
-            //sprawdzenie czy rozgrywka sie nie skonczyla:
-            if (IsGameEnded())
+        
+            if (IsMaxTimePassed())
             {
                 // todo correct that function because nobody knows what the hell is inside
                 if (MachineAnalyzeCommands(buffer, stream) == 1)
@@ -421,16 +415,18 @@ namespace ClassLibrary1
                 }
                
             }
-            else //jesli czas sie zakonczyl
+            else
             {
                 InitializeGame(stream);
             }
         }
 
-        private bool IsGameEnded()
+        //todo check the conditional
+        private bool IsMaxTimePassed()
         {
-            return gameTimeLasted <= MAX_GAME_TIME_LIMIT;  
+            return gameTimeLasted >= MAX_GAME_TIME_LIMIT;  
         }
+
         private bool IsGameWon()
         {
             return (machineState_calibrated == 1 && machineState_back_power == 1 && machineState_power == 1 && machineState_back_valves == 1 && machineState_valves == 1 && machineState_turned_on == 1);
@@ -445,12 +441,19 @@ namespace ClassLibrary1
         }
         private void GameSummary(NetworkStream stream)
         {
-            victory = 1;
+            victoryFlag = true;
             tmptime = (MAX_GAME_TIME_LIMIT - gameTimeLasted).ToString();
             Printer.writeStringToConsole(stream, "All systems operational; 0 issues detected.\r\n Your result:");
             Printer.writeStringToConsole(stream, tmptime);
             Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
             gameTimeLasted = MAX_GAME_TIME_LIMIT - 10;
+        }
+        private void CheckIfGameIsWon(NetworkStream stream)
+        {
+            if (victoryFlag == true)
+            {
+                Printer.writeStringToConsole(stream, "Report: multiple damage indicators on\r\nSystem failure\r\n");
+            }
         }
     }
 }
