@@ -42,19 +42,7 @@ namespace ClassLibrary1
                 TcpClient tcpClient = TcpListener.AcceptTcpClient();
                Stream = tcpClient.GetStream();
                 TransmissionDataDelegate transmissionDelegate = new TransmissionDataDelegate(BeginDataTransmission);
-                //callback style
-
                 transmissionDelegate.BeginInvoke(Stream, TransmissionCallback, tcpClient);
-
-                // async result style
-
-                //IAsyncResult result = transmissionDelegate.BeginInvoke(Stream, null, null);
-
-                ////operacje......
-
-                //while (!result.IsCompleted) ;
-
-                ////sprzątanie
 
             }
 
@@ -113,8 +101,6 @@ namespace ClassLibrary1
 
             StartListening();
 
-            //transmission starts within the accept function
-
             AcceptClient();
 
         }
@@ -131,18 +117,15 @@ namespace ClassLibrary1
         int machineState_calibrated = 0, machineState_back_power = 0,machineState_power=0,machineState_back_valves =0, machineState_valves=0,machineState_turned_on =0, machineState_angry =0; //By gracz mógł uruchomić pewne funkcje, inne muszą być już włączone - flagi
         int machine_errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
         public int time = 0; //czas rozgrywki
-        public int ruchy = 0; //ilosc ruchow //dd
+        public int ruchy = 0; //ilosc ruchow
         int victory = 0; //flaga wygranej
-        public Timer tim1 = new Timer(1000); //interwał timera //dd
+        public Timer tim1 = new Timer(1000); //interwał timera
 
-        int buffer_size = 1024;//dd
+        int buffer_size = 1024;
         int endtime = 10000; //czas do konca gry
         string tmptime;//zmienna pomocnicza
-        NetworkStream stream; //dd (dodane)
-        TcpListener tcpListener;//dd
-        TcpClient tcpClient;//dd
-        bool running;//dd
-        IPAddress ip;//dd
+        bool running;
+        IPAddress ip;
         public int start = 0;
         int port;
         public ZeGame(IPAddress Ip, int Port)
@@ -157,7 +140,7 @@ namespace ClassLibrary1
         /// <param name="str">string z którym porównujemy</param>
         /// <param name="buffer">to co porównamy ze stringiem</param>
         /// <returns></returns>
-        public int Buffer_size //dd
+        public int Buffer_size
         {
             get => buffer_size; set
 
@@ -170,11 +153,11 @@ namespace ClassLibrary1
             }
 
         }
-        protected NetworkStream Stream { get => stream; set => stream = value; } //dd
-        protected abstract void BeginDataTransmission(NetworkStream stream); //dd
-        protected TcpListener TcpListener { get => tcpListener; set => tcpListener = value; }//dd
-        public abstract void Start();//dd
-        public IPAddress IPAddress //DD
+        protected NetworkStream Stream { get; set; }
+        protected abstract void BeginDataTransmission(NetworkStream stream);
+        protected TcpListener TcpListener { get; set; }
+        public abstract void Start();
+        public IPAddress IPAddress
         {
             get => ip; set
             {
@@ -183,14 +166,14 @@ namespace ClassLibrary1
             }
         }
 
-        protected void StartListening() //dd
+        protected void StartListening()
 
         {
             TcpListener = new TcpListener(IPAddress, Port);
             TcpListener.Start();
         }
-        protected TcpClient TcpClient { get => tcpClient; set => tcpClient = value; }//dd
-        protected bool checkPort() //dd
+        protected TcpClient TcpClient { get; set; }
+        protected bool checkPort()
 
         {
             if (port < 1024 || port > 49151) return false;

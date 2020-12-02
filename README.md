@@ -31,7 +31,4 @@ Tontvs<br/>
 O mighty Machine allow me to touch your blessed switches and gaze upon your holy dials<br/>
 ctvs<br/>
 
-**test**
-**test2**
-**WIĘKSZY TEST*
  
