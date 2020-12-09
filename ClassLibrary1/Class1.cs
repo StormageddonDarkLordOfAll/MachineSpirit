@@ -70,7 +70,6 @@ namespace ClassLibrary1
                 {
                     if (start == 0)
                     {
-                        Console.Write("dupa");
                         InitializeGame(stream);
                         timerInterval.Enabled = true;//uruchomienie timera
                     }
@@ -431,7 +430,6 @@ namespace ClassLibrary1
             }
             else
             {
-                Console.Write("wadowice");
                 InitializeGame(stream);
             }
         }

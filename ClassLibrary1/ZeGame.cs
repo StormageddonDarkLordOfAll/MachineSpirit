@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
+using PrintText;
 
 namespace AbstractGame
 {
@@ -112,6 +113,7 @@ namespace AbstractGame
         /// <param name="s">co wypisać</param>
         void writStr(NetworkStream stream, string s)
         {
+            Console.WriteLine("testujem");
             byte[] buffer = new byte[1024]; //bufor
             buffer = Encoding.ASCII.GetBytes(s); //przerzucenie stringa do bufora
             stream.Write(buffer, 0, buffer.Length); //wypisanie bufora
@@ -120,7 +122,7 @@ namespace AbstractGame
         /// metoda wypisująca na ekran instrukcję z komendami
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        void PrintManual(NetworkStream stream)
+        /*void PrintManual(NetworkStream stream)
         {
             writStr(stream, "Void Shield Generator \"Glimmer\" Pattern User Manual\r\n\r\n\r\n");
             writStr(stream, "Calibrate the Void Shields:ctvs\r\nClose Power-valves for the Backup Power Generator:cpftbpg\r\n");
@@ -131,12 +133,12 @@ namespace AbstractGame
             writStr(stream, "Restart:/r\r\nReset Settings:/R\r\n");
             writStr(stream, "Status:/s\r\nTurn on the Void Shields:Tontvs\r\n");
             writStr(stream, "Turn off the Void Shields:Tofftvs\r\n\r\n");
-        }
+        }*/
         /// <summary>
         /// metoda wypluwająca na ekran modlitwy
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        void PrintPrayerbook(NetworkStream stream)
+        /*void PrintPrayerbook(NetworkStream stream)
         {
             writStr(stream, "Void Shield Generator \"Glimmer\" Pattern Prayerbook\r\n");
             writStr(stream, "\r\n<<prayer>> notes\r\n\r\n");
@@ -146,7 +148,7 @@ namespace AbstractGame
             writStr(stream, "Chant of the Eternal Slumber\r\n<<Blessed be thy o holy Machine let me stay in your mighty presence>>some priests skip this line\r\n<<Your strength has saved servants of the Omnissiah you may rest now>>\r\n<<Disperse your power>>\r\n<<Say farewell to your brothers>>");
             writStr(stream, "Chant of Reversion\r\n<<O mighty Machine, be as your fabricator-father has once made you>>\r\n");
             writStr(stream, "Psalm of the Guilty\r\n<<Blessed Machine, forgive me the sins I commited in your almighty presence>>\r\n\r\n");
-        }
+        }*/
         /// <summary>
         /// metoda wypisująca na ekran klienta aktualny stan
         /// </summary>
@@ -220,7 +222,7 @@ namespace AbstractGame
         /// metoda odpowiedzialna za wypisanie na ekran gracza wiadomosci startowej, restart gry
         /// </summary>
         /// <param name="stream">strumień klienta</param>
-        public void InitializeGame(NetworkStream stream) //
+        /*public void InitializeGame(NetworkStream stream) //
         {
             writStr(stream, "Planet: Ridyria Secundus.\r\n");
             writStr(stream, "Date: 493.992.M41.\r\n");
@@ -236,7 +238,7 @@ namespace AbstractGame
             time = 0;
             ruchy = 0;
             MachineRestart(stream, false);
-        }
+        }*/
         /// <summary>
         /// Funkcja dokonujaca zmian we flagach maszyny na podstawie podanej komendy oraz informujaca, czy dana komenda zostala rozpoznana
         /// </summary>
@@ -261,12 +263,12 @@ namespace AbstractGame
                                                                                                                                                                                                     //zagniewana maszyna zaakceptuje wyłącznie modlitwy oraz prośby o instrukcję, prayerbook lub reset opcji
             if (CompareStringToBuffer("/m", buffer) == true)  //instrukcja
             {
-                PrintManual(stream);
+                Printer.PrintManual(stream);
                 return 1;
             }
             if (CompareStringToBuffer("/p", buffer) == true)  //prayerbook
             {
-                PrintPrayerbook(stream);
+                Printer.PrintPrayerbook(stream);
                 return 1;
             }
             if (CompareStringToBuffer("/R", buffer) == true)  //reset ustawien
@@ -373,7 +375,8 @@ namespace AbstractGame
             }
             else //jesli czas sie zakonczyl
             {
-                InitializeGame(stream);
+                //InitializeGame(stream);
+                Printer.InitializeMenu(stream);
             }
         }
     }
