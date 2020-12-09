@@ -70,6 +70,7 @@ namespace ClassLibrary1
                 {
                     if (start == 0)
                     {
+                        Console.Write("dupa");
                         InitializeGame(stream);
                         timerInterval.Enabled = true;//uruchomienie timera
                     }
@@ -410,7 +411,7 @@ namespace ClassLibrary1
         public void MachineProceed(byte[] buffer, NetworkStream stream) 
         {
         
-            if (IsMaxTimePassed())
+            if (!IsMaxTimePassed())
             {
                 // todo correct that function because nobody knows what the hell is inside
                 if (MachineAnalyzeCommands(buffer, stream) == 1)
@@ -430,7 +431,7 @@ namespace ClassLibrary1
             }
             else
             {
-                
+                Console.Write("wadowice");
                 InitializeGame(stream);
             }
         }
@@ -464,7 +465,7 @@ namespace ClassLibrary1
         }
         private void CheckIfGameIsWon(NetworkStream stream)
         {
-            if (victoryFlag == true)
+            if (victoryFlag == false)
             {
                 Printer.writeStringToConsole(stream, "Report: multiple damage indicators on\r\nSystem failure\r\n");
             }
