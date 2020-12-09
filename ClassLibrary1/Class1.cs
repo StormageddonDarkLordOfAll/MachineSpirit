@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Timers;
 using System.IO;
-using Print.Prayer;
+using PrintText;
 /*
 * -------------------------------------Gra tekstowa The Machine Spirit------------------------------------------------------------------------------------------------------------
 * Gra osadzona w uniwersum Warhammera 40k, gracz wciela się w kapłana maszyny próbującego uruchomić generator pola siłowego. 
@@ -430,6 +430,7 @@ namespace ClassLibrary1
             }
             else
             {
+                
                 InitializeGame(stream);
             }
         }

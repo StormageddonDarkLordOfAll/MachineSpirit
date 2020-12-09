@@ -1,7 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 
-namespace Print.Prayer
+namespace PrintText
 {
     public class Printer
     {
