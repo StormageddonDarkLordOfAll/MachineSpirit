@@ -77,7 +77,7 @@ namespace ClassLibrary1
                     timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
                     int message_size = stream.Read(buffer, 0, Buffer_size);
                     MachineProceed(buffer, stream);
-                    stream.Write(buffer, 0, message_size);
+                    //stream.Write(buffer, 0, message_size);
 
                 }
 
