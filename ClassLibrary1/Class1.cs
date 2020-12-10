@@ -71,20 +71,18 @@ namespace ClassLibrary1
                     if (start == 0)
                     {
                         InitializeGame(stream);
-                        timerInterval.Enabled = true;//uruchomienie timera
+                        timerInterval.Enabled = true;//uruchomienie
                     }
                     start = 1;
                     timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
                     int message_size = stream.Read(buffer, 0, Buffer_size);
                     MachineProceed(buffer, stream);
-                    //stream.Write(buffer, 0, message_size);
-
                 }
 
                 catch (IOException e)
 
                 {
-
+                  
                     break;
 
                 }
@@ -115,7 +113,7 @@ namespace ClassLibrary1
         int machineState_calibrated = 0, machineState_back_power = 0,machineState_power=0,machineState_back_valves =0, machineState_valves=0,machineState_turned_on =0, machineState_angry =0; //By gracz mógł uruchomić pewne funkcje, inne muszą być już włączone - flagi
         int machine_errnum = 2128; //zmienna potrzebna do efektu kosmetycznego 
        
-        public int ruchy = 0; //ilosc ruchow
+        public int numberOfMoves = 0;
         bool victoryFlag = false;
         public Timer timerInterval; 
 
@@ -300,7 +298,7 @@ namespace ClassLibrary1
         {
             Printer.InitializeMenu(stream);
             gameTimeLasted = 0;
-            ruchy = 0;
+            numberOfMoves = 0;
             MachineRestart(stream, false);
         }
         /// <summary>
@@ -447,9 +445,9 @@ namespace ClassLibrary1
 
         private void ContinueGame(NetworkStream stream)
         {
-            ruchy += 1;
+            numberOfMoves += 1;
             tmptime = (MAX_GAME_TIME_LIMIT - gameTimeLasted).ToString();
-            Printer.writeStringToConsole(stream, "reply no." + ruchy + "; " + tmptime);
+            Printer.writeStringToConsole(stream, "reply no." + numberOfMoves + "; " + tmptime);
             Printer.writeStringToConsole(stream, " (time left to impact)\r\n");
         }
         private void GameSummary(NetworkStream stream)
