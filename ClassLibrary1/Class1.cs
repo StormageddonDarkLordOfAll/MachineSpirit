@@ -60,11 +60,11 @@ namespace ClassLibrary1
         {
 
             byte[] buffer = new byte[Buffer_size];
-
+            timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
             while (true)
 
             {
-
+                Console.Write("piwo");
                 try
 
                 {
@@ -73,10 +73,13 @@ namespace ClassLibrary1
                         InitializeGame(stream);
                         timerInterval.Enabled = true;//uruchomienie timera
                     }
+                    
                     start = 1;
-                    timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
+                    //timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
                     int message_size = stream.Read(buffer, 0, Buffer_size);
                     MachineProceed(buffer, stream);
+                    string converted = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
+                    Console.Write(converted);
                     //stream.Write(buffer, 0, message_size);
 
                 }
@@ -130,12 +133,14 @@ namespace ClassLibrary1
         int port;
         public ZeGame(IPAddress Ip, int Port)
         {
+            Console.Write("piwo-ziemniak");
             ip = Ip;
             port = Port;
             bufferSize = 1024;
             gameTimeLasted = 0;
-            MAX_GAME_TIME_LIMIT = 10000;
-            timerInterval  = new Timer(1000); 
+            MAX_GAME_TIME_LIMIT = 60;
+            timerInterval  = new Timer(1000);
+            //timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
         }
         public ZeGame() { }
         /// <summary>
@@ -283,6 +288,7 @@ namespace ClassLibrary1
         public void TimerTicker(NetworkStream stream)
         {
             gameTimeLasted++;
+            Console.Write("dupa " + gameTimeLasted);
             if (IsMaxTimePassed())
             {
                 CheckIfGameIsWon(stream);
@@ -290,6 +296,7 @@ namespace ClassLibrary1
         }
         public void OnTimedEvent(object source, ElapsedEventArgs e, NetworkStream stream)
         {
+            
             TimerTicker(stream);
         }
         /// <summary>
@@ -430,6 +437,7 @@ namespace ClassLibrary1
             }
             else
             {
+                
                 InitializeGame(stream);
             }
         }

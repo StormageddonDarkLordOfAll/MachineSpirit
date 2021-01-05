@@ -17,7 +17,7 @@ namespace MachineSpirit
 
         public static void OnTimedEvent(object source, ElapsedEventArgs e, ZeGame gra, NetworkStream stream) //stare
         {
-            gra.TimerTicker(stream);
+            //gra.TimerTicker(stream);
         }
         static void Main(string[] args)
         {
