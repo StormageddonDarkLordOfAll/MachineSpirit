@@ -17,7 +17,7 @@ namespace Klient
             string line;
             string converted;
 
-
+            Console.ForegroundColor = ConsoleColor.Green;
             while (true)
             {
                     stream.Read(message, 0, message.Length);
