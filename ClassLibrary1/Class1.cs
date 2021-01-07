@@ -51,8 +51,6 @@ namespace ClassLibrary1
 
         {
 
-            // sprzątanie
-
         }
 
         protected override void BeginDataTransmission(NetworkStream stream)
@@ -71,7 +69,7 @@ namespace ClassLibrary1
                     if (start == 0)
                     {
                         InitializeGame(stream);
-                        timerInterval.Enabled = true;//uruchomienie
+                        timerInterval.Enabled = true;
                     }
                     start = 1;
                     timerInterval.Elapsed += (sender, e) => OnTimedEvent(sender, e, stream);
@@ -121,7 +119,7 @@ namespace ClassLibrary1
         public int gameTimeLasted;
         int MAX_GAME_TIME_LIMIT;
 
-        string tmptime;//zmienna pomocnicza
+        string tmptime;
         bool running;
         IPAddress ip;
         public int start = 0;
@@ -253,6 +251,7 @@ namespace ClassLibrary1
             InformClientAboutRestart(stream, informClientAboutRestart);
             ResetFlags();
         }
+
         private void InformClientAboutRestart(NetworkStream stream, bool informClientAboutRestart)
         {
             if (informClientAboutRestart == true)
@@ -261,6 +260,9 @@ namespace ClassLibrary1
                 Printer.writeStringToConsole(stream, "Complete\r\n");
             }
         }
+        /// <summary>
+        /// Reset all game flags
+        /// </summary>
         private void ResetFlags()
         {
             machineState_prayer = -1; machineState_calibrated = 0; machineState_back_power = 0; machineState_power = 0; machineState_back_valves = 0; machineState_valves = 0; machineState_turned_on = 0; machineState_angry = 0;
@@ -375,7 +377,7 @@ namespace ClassLibrary1
                 if (machineState_prayer == 4) { if (machineState_valves == 1) machineState_power = 1; return 1; } else { Printer.writeStringToConsole(stream, "Void Shield system error 1777.\r\n"); machineState_power = 0; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
             }
             if (CompareStringToBuffer("dtbpg", buffer) == true)
-            { //jesli to ta komenda
+            { //jesli to ta komendaF
                 if (machineState_prayer == 8) { machineState_back_power = 0; return 1; } else { Printer.writeStringToConsole(stream, "Void Shield system error 87.\r\n"); if (machineState_back_valves == 1) machineState_back_power = 1; machineState_angry = 1; return 1; } //zaleznie czy dobra modlitwa wykonaj lub zdenerwuj maszyne
             }
             if (CompareStringToBuffer("dtpg", buffer) == true)
@@ -432,7 +434,6 @@ namespace ClassLibrary1
             }
         }
 
-        //todo check the conditional
         private bool IsMaxTimePassed()
         {
             return gameTimeLasted >= MAX_GAME_TIME_LIMIT;  
