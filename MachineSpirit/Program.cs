@@ -15,14 +15,14 @@ namespace MachineSpirit
     class Program
     {
 
-        public static void OnTimedEvent(object source, ElapsedEventArgs e, ZeGame gra, NetworkStream stream) //stare
+        public static void OnTimedEvent(object source, ElapsedEventArgs e, ZeGame gra, NetworkStream stream)
         {
             //gra.TimerTicker(stream);
         }
         static void Main(string[] args)
         {
            
-            ZeGameAPM gra = new ZeGameAPM(IPAddress.Parse("127.0.0.1"), 2048); //utworzenie gry
+            ZeGameAPM gra = new ZeGameAPM(IPAddress.Parse("127.0.0.1"), 2048);
             gra.Start();
 
         }
