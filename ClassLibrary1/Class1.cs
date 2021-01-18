@@ -62,7 +62,6 @@ namespace ClassLibrary1
             while (true)
 
             {
-                Console.Write("piwo");
                 try
 
                 {
@@ -127,7 +126,6 @@ namespace ClassLibrary1
         int port;
         public ZeGame(IPAddress Ip, int Port)
         {
-            Console.Write("piwo-ziemniak");
             ip = Ip;
             port = Port;
             bufferSize = 1024;
@@ -286,7 +284,6 @@ namespace ClassLibrary1
         public void TimerTicker(NetworkStream stream)
         {
             gameTimeLasted++;
-            Console.Write("dupa " + gameTimeLasted);
             if (IsMaxTimePassed())
             {
                 CheckIfGameIsWon(stream);
