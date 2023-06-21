@@ -1,7 +1,7 @@
 # MachineSpirit
 IO project
-W ramach zadania sporządziłem grę tekstową osadzoną w uniwersum Warhammera 40k, w której gracz wciela się w rolę młodego członka 
-Adeptus Mechanicus, który pod nieobecność przełożonego musi odpalić nad stolicą generator pola siłowego, nim zostanie ona zmieciona
+W ramach zadania sporządzono grę tekstową osadzoną w uniwersum Warhammera 40k, w której gracz wciela się w rolę młodego członka 
+Adeptus Mechanicus, muszącego pod nieobecność przełożonego odpalić nad stolicą generator pola siłowego, nim zostanie ona zmieciona
 z powierzchni planety.
 Niestety w tym uniwersum technologia postrzegana jest w niezwykle zabobonny sposób, a maszyny są po części samoświadome.
 Gracz zmuszony jest więc stoczyć walkę z niezwykle nieprzystępnym i kapryśnym intefejsem użytkownika.
